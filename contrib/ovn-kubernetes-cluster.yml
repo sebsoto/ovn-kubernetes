@@ -9,66 +9,20 @@
         path: "{{ ansible_tmp_dir }}"
         state: directory
 
-- hosts: kube-master
-  any_errors_fatal: true
-  gather_facts: true
-  become: true
-  tasks:
-    - import_role:
-        name: linux/version_check
-    - import_role:
-        name: linux/docker
-    - import_role:
-        name: linux/openvswitch
-      vars:
-        force_ovs_reinstall: false # clean reinstall OVS if it exists
-        # make sure to give the link to prebuilt OVS packages in
-        # roles/linux/openvswitch/vars/ubuntu.yml if this var is set to true
-        ovs_install_prebuilt_packages: false
-    - import_role:
-        name: linux/ovn-kubernetes
-    - import_role:
-        name: linux/kubernetes
+    - name: ovn-kubernetes | Pull ignition file from cluster
+      shell: oc get machineconfig| awk '/rendered-worker.*/{print $1;exit}'| xargs oc get machineconfig -o json | jq '.spec.config' > worker.ign
+      args:
+        chdir: "{{ ansible_tmp_dir }}"
 
-- hosts: kube-minions-linux
-  any_errors_fatal: true
-  gather_facts: true
-  become: true
-  tasks:
-    - import_role:
-        name: linux/version_check
-    - import_role:
-        name: linux/docker
-    - import_role:
-        name: linux/openvswitch
-      vars:
-        force_ovs_reinstall: false # clean reinstall OVS if it exists
-        # make sure to give the link to prebuilt OVS packages in
-        # roles/linux/openvswitch/vars/ubuntu.yml if this var is set to true
-        ovs_install_prebuilt_packages: false
-    - import_role:
-        name: linux/ovn-kubernetes
-    - import_role:
-        name: linux/kubernetes
+    - name: ovn-kubernetes | Generate bootstrap files
+      shell: ~/wmcb worker.ign ./
+      args:
+        chdir: "{{ ansible_tmp_dir }}"
 
-# TODO(alinbalutoiu): Move the hosts file update above once ansible fixes
-# lineinfile concurrency issues https://github.com/ansible/ansible/issues/30413
-- hosts: kube-minions-linux
-  any_errors_fatal: true
-  gather_facts: true
-  become: true
-  serial: 1
-  tasks:
-    - include_tasks: roles/linux/kubernetes/tasks/set_ip_facts.yml
-    - name: Ensure /etc/hosts is updated on kube-master
-      lineinfile:
-        path: /etc/hosts
-        regexp: ' {{ ansible_hostname | lower }}$'
-        line: '{{ host_public_ip }} {{ ansible_hostname | lower }}'
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['kube-master'] }}"
+      
 
-- hosts: kube-minions-windows
+
+- hosts: windows_workers
   remote_user: Administrator
   gather_facts: true
   become_method: runas
@@ -96,7 +50,7 @@
         # to the certificates which need to be added in certstore in order to be able
         # to install the MSI in unattended mode
         # Setting install_beta_ovs to false will install the latest stable OVS
-        install_custom_ovs: true
+        install_custom_ovs: false
         custom_ovs_link: "https://cloudbase.it/downloads/openvswitch-hyperv-installer-beta-2.10.msi"
         # This is useful for dev purposes and when using custom MSI which is not signed
         bcdedit_needed: false
@@ -108,7 +62,7 @@
 
 # TODO(alinbalutoiu): Move the hosts file update above once ansible fixes
 # lineinfile concurrency issues https://github.com/ansible/ansible/issues/30413
-- hosts: kube-minions-windows
+- hosts: windows_workers
   remote_user: Administrator
   gather_facts: true
   become_method: runas
@@ -127,28 +81,8 @@
       delegate_to: "{{ item }}"
       with_items: "{{ groups['kube-master'] }}"
 
-# TODO(ionutbalutoiu):
-# Remove below workaround when this is fixed: https://github.com/ovn-org/ovn-kubernetes/issues/531
-# Right now, the CoreDNS pods will never reach "running" state. We need to kill the existing pods and
-# new ones will be successfully created.
-- hosts: kube-master
-  any_errors_fatal: true
-  gather_facts: true
-  become: true
-  tasks:
-    - name: Kill the kube-dns pods
-      run_once: true
-      shell: kubectl delete pod --force --grace-period=0 --namespace kube-system --selector k8s-app=kube-dns
 
-- hosts: kube-master:kube-minions-linux
-  any_errors_fatal: true
-  gather_facts: true
-  become: true
-  tasks:
-    - import_role:
-        name: linux/validation
-
-- hosts: kube-minions-windows
+- hosts: windows_workers
   remote_user: Administrator
   gather_facts: true
   become_method: runas

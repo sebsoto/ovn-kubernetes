@@ -4,7 +4,8 @@
     - name: OVN subnet | Fetch the ovn_host_subnet annotation
       win_shell: |
         $ErrorActionPreference = "Stop"
-        $output = & "{{ install_path }}\kubectl.exe" get node {{ ansible_hostname | lower }} --output json
+        $output = & "{{ install_path }}\kubectl.exe" --kubeconfig="{{ install_path }}\kubeconfig" --client-key="c:\var\lib\kubelet\pki\kubelet-client-current.pem" --client-certificate="c:\var\lib\kubelet\pki\kubelet-client-current.pem" get node "{{ kubernetes_info.NODE_NAME }}" --output json
+        #$output = & "{{ install_path }}\kubectl.exe" get node {{ ansible_hostname | lower }} --output json
         if($LASTEXITCODE) {
             Throw "Failed to execute kubectl.exe get node"
         }

@@ -5,17 +5,23 @@ sdn_info:
 ovs_cmd_timeout: 30
 
 kubernetes_info:
-  MASTER_IP: "{{MASTER_IP}}"
-  CLUSTER_SUBNET: "{{CLUSTER_SUBNET | default('10.0.0.0/16')}}"
+  #  MASTER_IP: "{{MASTER_IP}}"
+  MASTER_IP: 
+  CLUSTER_SUBNET: 
   MASTER_INTERNAL_IP: "{{MASTER_INTERNAL_IP | default('10.0.0.2')}}" # Will always be the second IP of CLUSTER_SUBNET
   SERVICE_CLUSTER_IP_RANGE: "{{SERVICE_CLUSTER_IP_RANGE | default('10.0.9.0/24')}}"
   K8S_DNS_DOMAIN: "{{K8S_DNS_DOMAIN | default('cluster.local')}}"
   K8S_DNS_SERVICE_IP: "{{K8S_DNS_SERVICE_IP | default('10.0.9.10')}}"
   K8S_API_SERVICE_IP: "{{K8S_API_SERVICE_IP | default('10.0.9.1')}}"
+  NODE_NAME:
+  NB_ADDR: 
+  SB_ADDR:
+  SERVICE_CIDR:
+  TOKEN: 
   infracontainername: "ovnkubernetes/pause"
 
 firewall:
-  disable_completely: false  # WARNING: Do NOT enable this in production. Used only for testing purposes.
+  disable_completely: true  # WARNING: Do NOT enable this in production. Used only for testing purposes.
 
   rules:
     - name: "Open vSwitch OVN GENEVE Port"

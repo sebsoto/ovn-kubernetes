@@ -17,6 +17,9 @@
     - ovnkube.exe
     - kubectl.exe
     - kubelet.exe
+    - bootstrap-kubeconfig
+    - kubelet-ca.crt
+    - kubelet-config
 
 - name: ovn-kubernetes | get cni binary
   win_copy:

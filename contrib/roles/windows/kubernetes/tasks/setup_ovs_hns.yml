@@ -71,4 +71,4 @@
     interactive: no
     system: yes
     wait: yes
-    timeout: 120
+    timeout: 240

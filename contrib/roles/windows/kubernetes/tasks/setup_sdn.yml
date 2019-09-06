@@ -22,7 +22,7 @@
       wait_for_connection:
         # The connection should come back usually after a few seconds
         delay: 5
-        timeout: 60
+        timeout: 240
   when: (hns_net_exists_out.stdout | trim) == "False"
 
 - name: SDN setup | Get the HNS network ID

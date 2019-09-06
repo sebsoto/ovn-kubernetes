@@ -1,7 +1,7 @@
 ---
-- name: Kubernetes | Include global vars for minions
-  include_vars: "{{ansible_tmp_dir}}/generated_global_vars.yml"
-  when: not master
+#- name: Kubernetes | Include global vars for minions
+#  include_vars: "{{ansible_tmp_dir}}/generated_global_vars.yml"
+#  when: not master
 
 - name: Kubernetes | Include vars
   include_vars: "{{ ansible_os_family|lower }}.yml"
@@ -65,9 +65,9 @@
   block:
     - debug:
         msg: Could not reach OVN gateway, running minion init
-    # This will create another powershell script for minion init. OVS on Windows
-    # does not allow any commands to be ran through network. Ansible uses WinRM
-    # for the connection.
+        #  This will create another powershell script for minion init. OVS on Windows
+        #does not allow any commands to be ran through network. Ansible uses WinRM
+        #for the connection.
     - name: Kubernetes | Run minion-init
       include_tasks: ./run_minion_init.yml
   when: ping_ovn_gateway.rc != 0
