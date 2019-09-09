@@ -15,12 +15,9 @@
         chdir: "{{ ansible_tmp_dir }}"
 
     - name: ovn-kubernetes | Generate bootstrap files
-      shell: ~/wmcb worker.ign ./
+      command: ./wmcb ./worker.ign ./
       args:
         chdir: "{{ ansible_tmp_dir }}"
-
-      
-
 
 - hosts: windows_workers
   remote_user: Administrator
@@ -50,7 +47,7 @@
         # to the certificates which need to be added in certstore in order to be able
         # to install the MSI in unattended mode
         # Setting install_beta_ovs to false will install the latest stable OVS
-        install_custom_ovs: false
+        install_custom_ovs: true
         custom_ovs_link: "https://cloudbase.it/downloads/openvswitch-hyperv-installer-beta-2.10.msi"
         # This is useful for dev purposes and when using custom MSI which is not signed
         bcdedit_needed: false
@@ -59,28 +56,6 @@
         name: windows/ovn-kubernetes
     - import_role:
         name: windows/kubernetes
-
-# TODO(alinbalutoiu): Move the hosts file update above once ansible fixes
-# lineinfile concurrency issues https://github.com/ansible/ansible/issues/30413
-- hosts: windows_workers
-  remote_user: Administrator
-  gather_facts: true
-  become_method: runas
-  any_errors_fatal: true
-  serial: 1
-  tasks:
-    - include_vars: roles/windows/kubernetes/vars/{{ ansible_os_family|lower }}.yml
-    - include_tasks: roles/windows/kubernetes/tasks/set_ip_facts.yml
-    - name: Ensure /etc/hosts is updated on kube-master
-      become: true
-      become_method: sudo
-      lineinfile:
-        path: /etc/hosts
-        regexp: ' {{ ansible_hostname | lower }}$'
-        line: '{{ host_public_ip }} {{ ansible_hostname | lower }}'
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['kube-master'] }}"
-
 
 - hosts: windows_workers
   remote_user: Administrator

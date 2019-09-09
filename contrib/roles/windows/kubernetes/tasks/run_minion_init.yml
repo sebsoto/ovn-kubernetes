@@ -25,8 +25,7 @@
     ovnkube_service_command: >-
       "{{ install_path }}\\ovnkube.exe" 
       --k8s-kubeconfig={{ install_path }}\\kubeconfig
-      #TODO: change NODE_NAME to be generated per host
-      --init-node="{{ kubernetes_info.NODE_NAME }}"
+      --init-node="{{ inventory_hostname }}"
       --k8s-token="{{ kubernetes_info.TOKEN }}" 
       --nb-address="{{ kubernetes_info.NB_ADDR }}"
       --sb-address="{{ kubernetes_info.SB_ADDR }}"
