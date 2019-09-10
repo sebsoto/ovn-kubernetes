@@ -25,7 +25,7 @@
     ovnkube_service_command: >-
       "{{ install_path }}\\ovnkube.exe" 
       --k8s-kubeconfig={{ install_path }}\\kubeconfig
-      --init-node="{{ inventory_hostname }}"
+      --init-node="{{ private_dns }}"
       --k8s-token="{{ kubernetes_info.TOKEN }}" 
       --nb-address="{{ kubernetes_info.NB_ADDR }}"
       --sb-address="{{ kubernetes_info.SB_ADDR }}"
@@ -36,14 +36,6 @@
       --nodeport
       --loglevel=10
       --encap-ip="{{ host_internal_ip }}"
-      #--gateway-mode=local
-      #--nb-address "tcp://{{ kubernetes_info.MASTER_IP }}:6641"
-      #--sb-address="tcp://{{ kubernetes_info.MASTER_IP }}:6642"
-      #--cluster-subnets {{ kubernetes_info.CLUSTER_SUBNET }}
-      #--k8s-service-cidr {{ kubernetes_info.SERVICE_CLUSTER_IP_RANGE }}
-      #      --k8s-apiserver http://{{ kubernetes_info.MASTER_IP }}:8080
-      #--init-node {{ ansible_hostname|lower }}
-
       
 - name: Kubernetes minion | Remove existing service wrapper config file
   win_file:
@@ -58,23 +50,23 @@
       log-file={{ install_path }}/ovn-kubernetes-node.log
       service-name=ovn-kubernetes-node
 
-- name: Kubernetes minion | Set default "init_gateway" fact if not already defined
-  set_fact:
-    init_gateway: true
-  when: init_gateway is not defined
+# - name: Kubernetes minion | Set default "init_gateway" fact if not already defined
+#  set_fact:
+#    init_gateway: true
+#  when: init_gateway is not defined
 
-- name: Kubernetes minion | Set the ovnkube service-command with gateway args
-  win_lineinfile:
-    path: '{{ install_path }}\ovnkube-servicewrapper-config.ini'
-    insertafter: EOF
-    state: present
-    line: >
-      service-command={{ ovnkube_service_command }}
-      --nodeport
-      --gateway-mode=shared
-      --gateway-interface="vEthernet ({{ interface_name }})"
-      --gateway-nexthop="{{ interface_default_gateway }}"
-  when: init_gateway
+  #- name: Kubernetes minion | Set the ovnkube service-command with gateway args
+  #win_lineinfile:
+  #  path: '{{ install_path }}\ovnkube-servicewrapper-config.ini'
+  #  insertafter: EOF
+  #  state: present
+  #  line: >
+  #    service-command={{ ovnkube_service_command }}
+  #    --nodeport
+  #    --gateway-mode=shared
+  #    --gateway-interface="vEthernet ({{ interface_name }})"
+  #    --gateway-nexthop="{{ interface_default_gateway }}"
+  # when: init_gateway
 
 - name: Kubernetes minion | Set the ovnkube service-command without gateway args
   win_lineinfile:
@@ -83,7 +75,6 @@
     state: present
     line: >
       service-command={{ ovnkube_service_command }}
-  when: not init_gateway
 
 - name: Kubernetes minion | Create ovn-kubernetes-node service
   win_service:

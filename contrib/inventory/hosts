@@ -1,2 +1,6 @@
+# Enter the private dns of the nodes you wish to add to the cluster
+# example:
+# ip-10-0-160-169.ec2.internal
 [windows_workers]
+ip-10-0-11-137.ec2.internal
 

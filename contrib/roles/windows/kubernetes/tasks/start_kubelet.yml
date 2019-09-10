@@ -62,12 +62,9 @@
           --v=10
           --network-plugin=cni --cni-bin-dir="{{ install_path }}\\cni"
           --cni-conf-dir="{{ install_path }}\\cni"
-          --pod-infra-container-image="mcr.microsoft.com/windows/servercore:ltsc2019"
-          #--hostname-override="{{ ansible_hostname }}"
-          #--cluster-dns="{{ kubernetes_info.K8S_DNS_SERVICE_IP }}"
-          #--cluster-domain="{{ kubernetes_info.K8S_DNS_DOMAIN }}"
-          #--pod-infra-container-image="{{kubernetes_info.infracontainername}}"
-
+          --pod-infra-container-image=mcr.microsoft.com/k8s/core/pause:1.2.0
+          --resolv-conf=""
+          --cert-dir="c:/var/lib/kubelet/pki/"
 
 - name: Kubelet | Create Kublet Windows service
   win_service:
@@ -87,22 +84,6 @@
 
 - name: Kublet | Enable Kublet service failure flags
   win_shell: sc.exe failureflag kubelet 1
-
-  #- name: Kubelet | Set kubectl context
-  #  win_shell: |
-  #    $ErrorActionPreference = "Stop"
-  #    {{ install_path }}\\kubectl.exe config set-cluster default-cluster --server={{ kubernetes_info.MASTER_IP }}:8080
-  #    if($LASTEXITCODE) {
-  #        Throw "Failed to run kubectl.exe config set-cluster"
-  #    }
-  #    {{ install_path }}\\kubectl.exe config set-context local --cluster=default-cluster --user=default-admin
-  #    if($LASTEXITCODE) {
-  #        Throw "Failed to run kubectl.exe config set-context"
-  #    }
-  #    {{ install_path }}\\kubectl.exe config use-context local
-  #    if($LASTEXITCODE) {
-  #        Throw "Failed to run kubectl.exe config use-context"
-  #    }
 
 # Start the kubelet to ensure OVN gives subnet to this minion
 - name: Kubelet | Start service kubelet
